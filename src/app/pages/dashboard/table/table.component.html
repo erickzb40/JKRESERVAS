@@ -1,0 +1,132 @@
+<div class="card">
+  <div class="card-header text-center" style="background-color: #F6F6F6;">
+    <h2><b>Administrador de Reservas</b></h2>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div style="width: 250px;">
+        <label for="" style="width: 100px;">Restaurante:</label>
+        <select [(ngModel)]="restaurant_value" class="form-select">
+          <option value="">Seleccione un restaurante</option>
+          <option value="{{item.restaurant}}" *ngFor="let item of restaurantes">{{item.name}}</option>
+        </select>
+      </div>
+      <div style="width: 230px;">
+        <label for="">Desde:</label>
+        <div class="input-group date" data-provide="datepicker">
+          <input type="date" class="form-control" [(ngModel)]="fecha1">
+          <div class="input-group-addon">
+            <span class="glyphicon glyphicon-th"></span>
+          </div>
+        </div>
+      </div>
+      <div style="width: 230px;">
+        <label for="">Hasta:</label>
+        <div class="input-group date" data-provide="datepicker">
+          <input type="date" class="form-control" [(ngModel)]="fecha2">
+          <div class="input-group-addon">
+            <span class="glyphicon glyphicon-th"></span>
+          </div>
+        </div>
+      </div>
+      <div style="width: 240px;">
+        <label for="" style="width: 70px;">Estado:</label>
+        <select [value]="filtroReservas" id="filtroSelect" class="form-select" style="width: 210px;"
+          (change)="llenarFiltro('filtroSelect')">
+          <option value="">Todos</option>
+          <option value="3">Sentada</option>
+          <option value="1">Confirmada</option>
+          <option value="-2">Cancelado por el cliente</option>
+        </select>
+      </div>
+      <div style="width: 80px;">
+        <label for="">Buscar:</label>
+        <mat-icon style="cursor: pointer; font-size:40px;width: 40px;height: 40px;color: green;"
+          (click)="buscarReservas()">search</mat-icon>
+      </div>
+      <div style="width: 80px;">
+        <label for="">Nuevo:</label>
+        <mat-icon style="cursor: pointer; font-size:40px;width: 40px;height: 40px;color: green;"
+          (click)="openModalRegistro(content)">add_box</mat-icon>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive m-3">
+    <table class="table table-sm align-middle mb-0 bg-white">
+      <thead class="bg-white">
+        <tr>
+          <th scope="col">Id</th>
+          <th scope="col">Fecha</th>
+          <th scope="col">Hora</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Obs</th>
+          <th scope="col">Pax</th>
+          <th scope="col">Mesa</th>
+          <th scope="col">Editar</th>
+          <th scope="col">Sentar</th>
+          <th scope="col">Info</th>
+          <th scope="col">Anular</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of reservas | ordenar: '-time'| filtrar: filtroReservas| paginate: { itemsPerPage: 10, currentPage: pages }">
+          <td scope="row">{{item.id}}</td>
+          <td scope="row">
+            <div style="width: 90px;">{{item.date|date:'dd/MM/yyyy'}}</div>
+          </td>
+          <td scope="row">{{item.time|date:'h:mm a'}}</td>
+          <td>{{item.estado_nombre}}</td>
+          <td scope="row">
+            <div>{{item.user_name}}</div>
+          </td>
+          <td scope="row">
+            <div style="max-width: 250px;">
+              {{item.observaciones}}
+            </div>
+          </td>
+          <td scope="row">
+            {{item.pax}}
+          </td>
+          <td scope="row">
+            {{item.mesa}}
+          </td>
+          <td>
+            <mat-icon  *ngIf="item.status!='-2'&&item.status!='3'" (click)="EditarCampos(item.id,item.user_phone,item.user_name,item.pax,item.mesa)" style="cursor: pointer;color: rgb(27, 3, 165);">edit</mat-icon>
+            <mat-icon *ngIf="item.status=='-2'||item.status=='3'">edit</mat-icon>
+
+          </td>
+          <td>
+            <mat-icon *ngIf="item.status!='-2'&&item.status!='3'" (click)="SentarEstado(item.id,'3',item.user_name,item.mesa,item.pax)" style="color: green;cursor: pointer;">check_circle_outline</mat-icon>
+            <mat-icon *ngIf="item.status=='-2'||item.status=='3'">check_circle_outline</mat-icon>
+          </td>
+          <td scope="row">
+            <div style="width: 30px;">
+              <a (click)="AbrirDetalles(item.date_add,item.time_add,item.id_reserv,item.provenance,item.tipo,item.user_phone,item.restaurant,item.email)"
+                style="cursor: pointer;">
+                <mat-icon style="color:rgb(0, 119, 255)">remove_red_eye</mat-icon>
+              </a>
+            </div>
+          </td>
+          <td scope="row">
+            <mat-icon *ngIf="item.status!='-2'&&item.status!='3'" (click)="AnularEstado(item.id,'-2',item.user_name,item.time)" style="color: red;cursor: pointer;">cancel</mat-icon>
+            <mat-icon *ngIf="item.status=='-2'||item.status=='3'" >cancel</mat-icon>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="row text-center">
+    <pagination-controls (pageChange)="pages = $event"></pagination-controls>
+  </div>
+</div>
+
+<ng-template #content let-modal>
+	<div class="modal-header" style="height: 50px;">
+		<h3 class="mt-2"><b>Nueva Reserva</b></h3>
+		<button id="cerrarModal" type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+	</div>
+	<div class="modal-body">
+		<app-registro></app-registro>
+	</div>
+</ng-template>

@@ -1,0 +1,76 @@
+
+  <form (ngSubmit)="register(f)" #f="ngForm" id="formulario">
+  <div class="form-group row">
+    <label for="input" class="col-sm-2 col-form-label"><a style="color: red;">(*)</a> Restaurant:</label>
+    <div class="col-sm-10">
+      <select [(ngModel)]="restaurant_value" name="restaurant" [ngClass]="{'is-invalid': f.submitted&&f.controls['restaurant'].errors}" class="form-select" required>
+        <option value="">Seleccione un restaurante</option>
+        <option value="{{item.restaurant}}" *ngFor="let item of restaurantes">{{item.name}}</option>
+      </select>
+    </div>
+  </div>
+    <div class="form-group row">
+      <label for="input" class="col-sm-2 col-form-label"><a style="color: red;">(*)</a> Nombre:</label>
+      <div class="col-sm-10">
+        <input type="text" ngModel class="form-control" [ngClass]="{'is-invalid': f.submitted&&f.controls['user_name'].errors}" name="user_name" placeholder="Ingrese el nombre del cliente" required>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="input" class="col-sm-2 col-form-label">Tipo:</label>
+      <div class="col-sm-10">
+        <select [(ngModel)]="tipo" name="tipo" class="form-select">
+          <option value="RESERVA">RESERVA</option>
+          <option value="WALK-IN">WALK-IN</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="input" class="col-sm-2 col-form-label"> Email:</label>
+      <div class="col-sm-10">
+        <input type="email" ngModel class="form-control"  name="email" placeholder="Email">
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="input" class="col-sm-2 col-form-label"><a style="color: red;">(*)</a> Pax:</label>
+      <div class="col-sm-4">
+        <input type="text" ngModel class="form-control" [ngClass]="{'is-invalid': f.submitted&&f.controls['pax'].errors}" name="pax"   required>
+      </div>
+      <label for="input" class="col-sm-2 col-form-label"> Mesa:</label>
+      <div class="col-sm-4">
+        <input type="text" ngModel class="form-control" [ngClass]="{'is-invalid': f.submitted&&f.controls['mesa'].errors}" name="mesa">
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="input" class="col-sm-2 col-form-label">Turno:</label>
+      <div class="col-sm-10">
+        <select [(ngModel)]="turno" name="turno" class="form-select">
+          <option value="Comida">Comida</option>
+          <option value="Cena">Cena</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="input"  class="col-sm-2 col-form-label">Observaciones:</label>
+      <div class="col-sm-10">
+        <textarea  ngModel class="form-control" [ngClass]="{'is-invalid': f.submitted&&f.controls['observaciones'].errors}" name="observaciones"  placeholder="Ingrese sus observaciones"></textarea>
+      </div>
+    </div>
+    <div class="form-group row" *ngIf="tipo=='RESERVA'">
+      <label for="input" class="col-sm-2 col-form-label"><a style="color: red;">(*)</a> Fecha:</label>
+      <div class="col-sm-10">
+        <input type="datetime-local" name="date" class="form-control" [(ngModel)]="fecha" required>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="input" class="col-sm-2 col-form-label">Telefono:</label>
+      <div class="col-sm-10">
+        <input type="text" ngModel class="form-control" [ngClass]="{'is-invalid': f.submitted&&f.controls['user_phone'].errors}" name="user_phone" placeholder="Ingrese el telefono">
+      </div>
+    </div>
+  </form>
+<div class="row">
+  <div  style="text-align: right;">
+    <button class="btn btn-danger" style="width: 80px;margin-right: 5px;" (click)='salir()'>Salir</button>
+    <button class="btn btn-success" style="width: 80px;" form="formulario" type="submit">Aceptar</button>
+  </div>
+</div>
