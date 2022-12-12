@@ -11,7 +11,15 @@ import Swal from 'sweetalert2';
 export class RegistroComponent {
 
   constructor(public api: ReservasService,public tb:TableComponent) {
-    this.api.getRestaurantes().subscribe((res: any) => { this.restaurantes = res.restaurants; });
+    this.api.obtenerPermisoToken().subscribe((res:any)=>{
+      this.token=res[0].token;
+      this.api.getRestaurantes(this.token).subscribe((res: any) => {
+        this.restaurantes = res.restaurants;
+        if(res.restaurants[0].restaurant){
+          this.restaurant_value= res.restaurants[0].restaurant;
+        }
+      });
+    })
     var time = new Date();
     var time2 = this.addHoursToDate(time, -5);
     this.fecha = time2.toISOString().substring(0, 16);
@@ -21,11 +29,13 @@ export class RegistroComponent {
   restaurant_value: string = '';
   turno: string = 'Comida';
   tipo: string = 'RESERVA';
-
+  token:string='';
   register(f: NgForm) {
     if (f.invalid) { return; }
-    f.value.date = new Date(this.fecha).toISOString();
-    f.value.time = new Date(this.fecha).toISOString();
+    f.value.date = this.addHoursToDate(new Date(f.value.date),-5).toISOString().substring(0,16);
+    f.value.time =  this.addHoursToDate(new Date(f.value.date),-5).toISOString().substring(0,16);
+    console.log( f.value.date );
+    console.log( f.value.time )
     this.api.crearReserva(f.value).subscribe(res => {
       Swal.fire({ icon: 'success', title: 'Creado Con exito!' });
       this.tb.cargarReservas();

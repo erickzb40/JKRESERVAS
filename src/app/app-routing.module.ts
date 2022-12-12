@@ -1,3 +1,4 @@
+import { VincularComponent } from './pages/vincular/vincular.component';
 import { ReportesComponent } from './pages/reportes/reportes.component';
 import { DashboardComponent } from './pages/dashboard/dashboard/dashboard.component';
 import { LoginComponent } from './pages/login/login.component';
@@ -9,6 +10,7 @@ const routes: Routes = [
 {path: 'login',  component: LoginComponent },
 {path: 'dashboard',  component: DashboardComponent,canActivate:[AuthGuard] },
 {path: 'reportes',  component: ReportesComponent,canActivate:[AuthGuard] },
+{path: 'vincular',  component: VincularComponent,canActivate:[AuthGuard] },
 {path: '',  component: LoginComponent }
 ];
 

@@ -20,6 +20,11 @@ import {MatButtonModule} from '@angular/material/button';
 import { OrdenarPipe } from './core/pipes/ordenar.pipe';
 import {MatTabsModule} from '@angular/material/tabs';
 import { ReportesComponent } from './pages/reportes/reportes.component';
+import { VincularComponent } from './pages/vincular/vincular.component';
+import { FiltroDocPipe } from './core/pipes/filtro-doc.pipe';
+import { FiltroReservaPipe } from './core/pipes/filtro-reserva.pipe';
+import { MatChipsModule } from '@angular/material/chips';
+import { FiltroReservaMainPipe } from './core/pipes/filtro-reserva-main.pipe';
 @NgModule({
   declarations: [
     AppComponent,
@@ -31,6 +36,10 @@ import { ReportesComponent } from './pages/reportes/reportes.component';
     FiltrosPipe,
     OrdenarPipe,
     ReportesComponent,
+    VincularComponent,
+    FiltroDocPipe,
+    FiltroReservaPipe,
+    FiltroReservaMainPipe,
 
   ],
   imports: [
@@ -44,7 +53,8 @@ import { ReportesComponent } from './pages/reportes/reportes.component';
     MatIconModule,
     MatToolbarModule,
     MatButtonModule,
-    MatTabsModule
+    MatTabsModule,
+    MatChipsModule
   ],
   providers: [ExcelService],
   bootstrap: [AppComponent]

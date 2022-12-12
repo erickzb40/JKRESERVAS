@@ -1,5 +1,3 @@
-import { NgForm } from '@angular/forms';
-import { RegistroComponent } from './../../modal/registro/registro.component';
 import { StringToDateService } from './../../../core/service/string-to-date.service';
 import { ExcelService } from '../../../core/service/excel.service';
 import { ReservasService } from '../../../core/service/reservas.service';
@@ -8,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import {  NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import * as $ from 'jquery';
+import { ThisReceiver } from '@angular/compiler';
 @Component({
   selector: 'app-table',
   templateUrl: './table.component.html',
@@ -33,6 +32,8 @@ export class TableComponent implements OnInit {
   pages: number = 1;//paginacion
   restaurantes: any = [];
   restaurant_value: string = '';
+  token:string='';
+  FiltroReservaNombre = '';
   fecha1: String;
   fecha2: String;
   constructor(public api: ReservasService,
@@ -40,7 +41,40 @@ export class TableComponent implements OnInit {
     public stringDateTime: StringToDateService,
     public dialog: MatDialog,
     private modalService: NgbModal) {
-    this.api.getRestaurantes().subscribe((res: any) => { this.restaurantes = res.restaurants; });
+      Swal.showLoading();
+      this.api.obtenerPermisoToken().subscribe((res:any)=>{
+        this.token=res[0].token;
+        this.api.getRestaurantes(this.token).subscribe((res: any) => {
+          this.restaurantes = res.restaurants;
+          if(res.restaurants[0].restaurant){
+            this.restaurant_value= res.restaurants[0].restaurant;
+            var objReservas = {
+              date_end: this.fecha2,
+              date_start: this.fecha1,
+              group: "this",
+              restaurant: this.restaurant_value,
+              status: "all"
+            }
+            this.api.buscarReservas(objReservas,this.token).subscribe((res: any) => {
+              if (res.reservs.length > 0) {
+                var a = this.stringDateTime.StringToDate(res.reservs);
+                this.api.insertarReservasPendientes(res.reservs, this.restaurant_value).subscribe(() => {
+                  this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
+                });
+              } else {
+                this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
+                Swal.close();
+              }
+            }, error => {
+              return Swal.fire({
+                icon:'error',
+                title:'Hubo un error en la conexión'
+              })
+            })
+          }
+        });
+      })
+
   }
 
   ngOnInit(): void {
@@ -48,11 +82,7 @@ export class TableComponent implements OnInit {
     var fecha = this.addHoursToDate(fecha, -5);
     this.fecha1 = fecha.toJSON().slice(0, 10);
     this.fecha2 = fecha.toJSON().slice(0, 10);
-    this.api.getReservasRango(this.fecha1, this.fecha2).subscribe(res => { this.reservas = res; Swal.close(); });
-    this.api.xacto().subscribe((res) => {
-      console.log('llego!')
-      console.log(res);
-    })
+
   }
   addHoursToDate(objDate, intHours) {
     var numberOfMlSeconds = objDate.getTime();
@@ -72,9 +102,10 @@ export class TableComponent implements OnInit {
   }
   cargarReservas(){
     this.modalService.dismissAll();
-    this.api.getReservasRango(this.fecha1, this.fecha2).subscribe(res => { this.reservas = res; Swal.close(); });
+    this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
   }
   buscarReservas() {
+
     Swal.showLoading();
     if (this.restaurant_value == '') {
       return Swal.fire({ icon: 'warning', title: 'Seleccione un restaurant' });
@@ -86,14 +117,15 @@ export class TableComponent implements OnInit {
       restaurant: this.restaurant_value,
       status: "all"
     }
-    this.api.buscarReservas(objReservas).subscribe((res: any) => {
+    this.api.buscarReservas(objReservas,this.token).subscribe((res: any) => {
+      this.pages=1;
       if (res.reservs.length > 0) {
         var a = this.stringDateTime.StringToDate(res.reservs);
         this.api.insertarReservasPendientes(res.reservs, this.restaurant_value).subscribe(() => {
-          this.api.getReservasRango(this.fecha1, this.fecha2).subscribe(res => { this.reservas = res; Swal.close(); });
+          this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
         });
       } else {
-        this.api.getReservasRango(this.fecha1, this.fecha2).subscribe(res => { this.reservas = res; Swal.close(); });
+        this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
         Swal.close();
       }
     }, error => {
@@ -140,9 +172,9 @@ export class TableComponent implements OnInit {
      <label for="pax" class="mt-2">Pax :</label><input type="text" id="pax" style="width:200px;margin-left:30px;margin-top:5px;margin-bot:5px" class="form-control" value="`+ pax + `">
    </div>`;
       if (pax == null || pax == '') {
-        titulo = 'Está seguro de sentar a la reserva sin el pax?';
+        titulo = 'Está seguro de sentar a la reserva a nombre de ' + nombre + ' sin el pax?';
       } if (mesa == null || mesa == '') {
-        titulo = 'Está seguro de sentar a la reserva sin una mesa?';
+        titulo = 'Está seguro de sentar a la reserva a nombre de ' + nombre + ' sin una mesa?';
       }
     }
     else {
@@ -164,7 +196,7 @@ export class TableComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         var temp;
-        if (pax == null || mesa == null) {
+        if (mesa == null || mesa == '' || pax == null || pax == '') {
           var pax_input = document.getElementById('pax') as HTMLInputElement | null;
           var mesa_input = document.getElementById('mesa') as HTMLInputElement | null;
           temp = {
@@ -179,7 +211,7 @@ export class TableComponent implements OnInit {
           }
         }
         this.enviarUpdateApi(temp);
-        this.api.getReservasRango(this.fecha1, this.fecha2).subscribe(res => { this.reservas = res; Swal.close(); })
+        this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); })
       }
     })
   }
@@ -192,9 +224,8 @@ export class TableComponent implements OnInit {
     var r = document.getElementById(valor) as HTMLInputElement | null;
     this.filtroReservas = r.value;
   }
-  AbrirDetalles($fcreada: string, $tcreada: string, $codigo: string, $proveniencia: string, $tipo: string, $telefono: string, $restaurant, $email: string) {
-    var [fecha] = $fcreada.split('T');
-    var [x, hora] = $tcreada.split('T');
+  AbrirDetalles($fcreada: string, $codigo: string, $proveniencia: string, $tipo: string, $telefono: string, $restaurant, $email: string) {
+    /* var [fecha] = $fcreada.split('T'); */
     var codigo = '';
     if ($codigo != null || $codigo != '') {
       var codigo = `<a>Codigo: ` + $codigo + `</a><br>`;
@@ -203,8 +234,7 @@ export class TableComponent implements OnInit {
       icon: 'info',
       width: '350px',
       html: `
-      <a>Fecha creada: `+ fecha + `</a><br>
-      <a>Hora creada: `+ hora + `</a><br>
+      <a>Fecha creada: `+  $fcreada + `</a><br>
       `+ codigo + `
       <a>Proveniencia: `+ $proveniencia + `</a><br>
       <a>Telefono: `+ $telefono + `</a><br>
@@ -215,7 +245,6 @@ export class TableComponent implements OnInit {
     })
   }
   EditarCampos($id, $telefono, $nombre, $pax, $mesa) {
-    console.log($nombre)
     $nombre = $nombre == null ? '' : $nombre;
     $telefono = $telefono == null ? '' : $telefono;
     $pax = $pax == null ? '' : $pax;
@@ -261,7 +290,7 @@ export class TableComponent implements OnInit {
   enviarUpdateApi(temp) {
     this.api.updateReservas(temp).subscribe((res: any) => {
       if (Object.entries(res).length > 0) {
-        this.api.getReservasRango(this.fecha1, this.fecha2).subscribe(res => { this.reservas = res; Swal.close(); });
+        this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
         return this.Toast.fire({
           icon: 'success',
           title: 'Actualizado'

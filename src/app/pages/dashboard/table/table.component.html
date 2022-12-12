@@ -1,5 +1,5 @@
 <div class="card">
-  <div class="card-header text-center" style="background-color: #F6F6F6;">
+  <div class="card-header text-center" style="background-color: #F6F6F6;height: 50px;">
     <h2><b>Administrador de Reservas</b></h2>
   </div>
   <div class="card-body">
@@ -7,8 +7,7 @@
       <div style="width: 250px;">
         <label for="" style="width: 100px;">Restaurante:</label>
         <select [(ngModel)]="restaurant_value" class="form-select">
-          <option value="">Seleccione un restaurante</option>
-          <option value="{{item.restaurant}}" *ngFor="let item of restaurantes">{{item.name}}</option>
+          <option value="{{item.restaurant}}"  *ngFor="let item of restaurantes let index = index" [selected]="index == 1">{{item.name}}</option>
         </select>
       </div>
       <div style="width: 230px;">
@@ -38,6 +37,10 @@
           <option value="1">Confirmada</option>
           <option value="-2">Cancelado por el cliente</option>
         </select>
+      </div>
+      <div style="width: 230px;">
+        <label for="">Filtrar por nombre:</label>
+        <input type="text" [(ngModel)]="FiltroReservaNombre"name="filtroName" class="form-control" >
       </div>
       <div style="width: 80px;">
         <label for="">Buscar:</label>
@@ -70,25 +73,25 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let item of reservas | ordenar: '-time'| filtrar: filtroReservas| paginate: { itemsPerPage: 10, currentPage: pages }">
+        <tr *ngFor="let item of reservas | filtroReservaMain:FiltroReservaNombre| ordenar: 'date'| filtrar: filtroReservas| paginate: {id:'page1', itemsPerPage: 10, currentPage: pages }">
           <td scope="row">{{item.id}}</td>
           <td scope="row">
-            <div style="width: 90px;">{{item.date|date:'dd/MM/yyyy'}}</div>
+            <div style="width: 90px;">{{item.date|date:'dd-MM-yyyy'}}</div>
           </td>
-          <td scope="row">{{item.time|date:'h:mm a'}}</td>
+          <td scope="row">{{item.date|date:'h:mm a'}}</td>
           <td>{{item.estado_nombre}}</td>
           <td scope="row">
             <div>{{item.user_name}}</div>
           </td>
           <td scope="row">
             <div style="max-width: 250px;">
-              {{item.observaciones}}
+              {{item.commentary_client}}
             </div>
           </td>
           <td scope="row">
             {{item.pax}}
           </td>
-          <td scope="row">
+          <td scope="row"  style="max-width: 150px;">
             {{item.mesa}}
           </td>
           <td>
@@ -102,14 +105,14 @@
           </td>
           <td scope="row">
             <div style="width: 30px;">
-              <a (click)="AbrirDetalles(item.date_add,item.time_add,item.id_reserv,item.provenance,item.tipo,item.user_phone,item.restaurant,item.email)"
+              <a (click)="AbrirDetalles(item.date_add,item.id_reserv,item.provenance,item.tipo,item.user_phone,item.restaurant,item.email)"
                 style="cursor: pointer;">
                 <mat-icon style="color:rgb(0, 119, 255)">remove_red_eye</mat-icon>
               </a>
             </div>
           </td>
           <td scope="row">
-            <mat-icon *ngIf="item.status!='-2'&&item.status!='3'" (click)="AnularEstado(item.id,'-2',item.user_name,item.time)" style="color: red;cursor: pointer;">cancel</mat-icon>
+            <mat-icon *ngIf="item.status!='-2'&&item.status!='3'" (click)="AnularEstado(item.id,'-2',item.user_name,item.date)" style="color: red;cursor: pointer;">cancel</mat-icon>
             <mat-icon *ngIf="item.status=='-2'||item.status=='3'" >cancel</mat-icon>
           </td>
         </tr>
@@ -117,7 +120,7 @@
     </table>
   </div>
   <div class="row text-center">
-    <pagination-controls (pageChange)="pages = $event"></pagination-controls>
+    <pagination-controls id="page1" (pageChange)="pages = $event"></pagination-controls>
   </div>
 </div>
 

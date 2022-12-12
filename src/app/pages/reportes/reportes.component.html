@@ -7,8 +7,7 @@
           <div style="width: 250px;">
             <label for="" style="width: 100px;">Restaurante:</label>
             <select [(ngModel)]="restaurant_value" class="form-select">
-              <option value="">Seleccione un restaurante</option>
-              <option value="{{item.restaurant}}" *ngFor="let item of restaurantes">{{item.name}}</option>
+              <option value="{{item.restaurant}}"  *ngFor="let item of restaurantes">{{item.name}}</option>
             </select>
           </div>
           <div style="width: 230px;">
@@ -39,31 +38,31 @@
               (click)="buscarReservas()">search</mat-icon>
           </div>
         </div>
-        <table class="table table-bordered">
+        <table class="table table-responsive">
           <thead>
             <tr>
               <th scope="col">id</th>
-              <th scope="col">time_add</th>
-              <th scope="col">time</th>
-              <th scope="col">user_name</th>
-              <th scope="col">user_phone</th>
+              <th scope="col" style="width: 200px;">Fecha Creada</th>
+              <th scope="col" style="width: 200px;">Fecha</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Telefono</th>
               <th scope="col">tipo</th>
               <th scope="col">usuario</th>
-              <th scope="col">status</th>
+              <th scope="col">estado</th>
               <th scope="col">restaurant</th>
               <th scope="col">provenance</th>
               <th scope="col">pax</th>
               <th scope="col">origin</th>
-              <th scope="col">observaciones</th>
+              <th scope="col" style="width: 300px;">observaciones</th>
               <th scope="col">mesa</th>
               <th scope="col">email</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of reservas">
+            <tr *ngFor="let item of reservas| paginate: {id:'page2', itemsPerPage: 10, currentPage: pd }">
               <th scope="row">{{item.id}}</th>
-              <td>{{item.time_add|date:'dd-MM-yyyy hh:mm a'}}</td>
-              <td>{{item.time|date:'dd-MM-yyyy hh:mm a'}}</td>
+              <td>{{item.date_add|date:'dd-MM-yyyy hh:mm a'}}</td>
+              <td>{{item.date|date:'dd-MM-yyyy hh:mm a'}}</td>
               <td>{{item.user_name}}</td>
               <td>{{item.user_phone}}</td>
               <td>{{item.tipo}}</td>
@@ -73,15 +72,31 @@
               <td>{{item.provenance}}</td>
               <td>{{item.pax}}</td>
               <td>{{item.origin}}</td>
-              <td>{{item.observaciones}}</td>
-              <td>{{item.mesa}}</td>
+              <td>{{item.commentary_client}}</td>
+              <td  style="max-width: 150px;">{{item.mesa}}</td>
               <td>{{item.email}}</td>
-
             </tr>
           </tbody>
         </table>
+        <pagination-controls id="page2" (pageChange)="pd = $event" class="text-center mt-2"></pagination-controls>
       </div>
     </mat-tab>
+ <!--    <mat-tab label="Detalle">
+      <table class="table table-responsive">
+        <thead>
+          <tr>
+            <th scope="col">id</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of reservas| paginate: {id:'detalle', itemsPerPage: 10, currentPage: pgDet }">
+            <th scope="row">{{item.id}}</th>
+          </tr>
+        </tbody>
+      </table>
+      <pagination-controls id="detalle" (pageChange)="pd = $event" class="text-center mt-2"></pagination-controls>
+
+    </mat-tab> -->
   </mat-tab-group>
 
 </div>
