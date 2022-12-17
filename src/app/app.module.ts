@@ -25,6 +25,7 @@ import { FiltroDocPipe } from './core/pipes/filtro-doc.pipe';
 import { FiltroReservaPipe } from './core/pipes/filtro-reserva.pipe';
 import { MatChipsModule } from '@angular/material/chips';
 import { FiltroReservaMainPipe } from './core/pipes/filtro-reserva-main.pipe';
+import { FiltradoPipe } from './core/pipes/filtrado.pipe';
 @NgModule({
   declarations: [
     AppComponent,
@@ -40,6 +41,7 @@ import { FiltroReservaMainPipe } from './core/pipes/filtro-reserva-main.pipe';
     FiltroDocPipe,
     FiltroReservaPipe,
     FiltroReservaMainPipe,
+    FiltradoPipe,
 
   ],
   imports: [

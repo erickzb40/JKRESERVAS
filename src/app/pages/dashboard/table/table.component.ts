@@ -42,9 +42,7 @@ export class TableComponent implements OnInit {
     public dialog: MatDialog,
     private modalService: NgbModal) {
       Swal.showLoading();
-      this.api.obtenerPermisoToken().subscribe((res:any)=>{
-        this.token=res[0].token;
-        this.api.getRestaurantes(this.token).subscribe((res: any) => {
+        this.api.getRestaurantes(localStorage.getItem('token_restaurant')).subscribe((res: any) => {
           this.restaurantes = res.restaurants;
           if(res.restaurants[0].restaurant){
             this.restaurant_value= res.restaurants[0].restaurant;
@@ -55,14 +53,14 @@ export class TableComponent implements OnInit {
               restaurant: this.restaurant_value,
               status: "all"
             }
-            this.api.buscarReservas(objReservas,this.token).subscribe((res: any) => {
+            this.api.buscarReservas(objReservas,localStorage.getItem('token_restaurant')).subscribe((res: any) => {
               if (res.reservs.length > 0) {
                 var a = this.stringDateTime.StringToDate(res.reservs);
                 this.api.insertarReservasPendientes(res.reservs, this.restaurant_value).subscribe(() => {
-                  this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
+                  this.api.getReservasRangoMain(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
                 });
               } else {
-                this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
+                this.api.getReservasRangoMain(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
                 Swal.close();
               }
             }, error => {
@@ -72,9 +70,7 @@ export class TableComponent implements OnInit {
               })
             })
           }
-        });
       })
-
   }
 
   ngOnInit(): void {
@@ -102,7 +98,7 @@ export class TableComponent implements OnInit {
   }
   cargarReservas(){
     this.modalService.dismissAll();
-    this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
+    this.api.getReservasRangoMain(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
   }
   buscarReservas() {
 
@@ -117,15 +113,15 @@ export class TableComponent implements OnInit {
       restaurant: this.restaurant_value,
       status: "all"
     }
-    this.api.buscarReservas(objReservas,this.token).subscribe((res: any) => {
+    this.api.buscarReservas(objReservas,localStorage.getItem('token_restaurant')).subscribe((res: any) => {
       this.pages=1;
       if (res.reservs.length > 0) {
         var a = this.stringDateTime.StringToDate(res.reservs);
         this.api.insertarReservasPendientes(res.reservs, this.restaurant_value).subscribe(() => {
-          this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
+          this.api.getReservasRangoMain(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
         });
       } else {
-        this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
+        this.api.getReservasRangoMain(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
         Swal.close();
       }
     }, error => {
@@ -136,7 +132,61 @@ export class TableComponent implements OnInit {
     })
   }
 
+  actualizarReservasPendientes(){
+    Swal.fire({
+      icon: 'warning',
+      title: 'Está seguro de sincronizar las reservas?',
+      text: 'Se perdera los datos actualizados',
+      width: '350px',
+      showCancelButton: true,
+      cancelButtonColor: 'red',
+      cancelButtonText: 'No',
+      confirmButtonText: 'Si',
+      confirmButtonColor: 'green',
+      showConfirmButton: true,
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (this.restaurant_value == '') {
+          return Swal.fire({ icon: 'warning', title: 'Seleccione un restaurant' });
+        }
+        var objReservas = {
+          date_end: this.fecha2,
+          date_start: this.fecha1,
+          group: "this",
+          restaurant: this.restaurant_value,
+          status: "all"
+        }
+        this.api.buscarReservas(objReservas,this.token).subscribe((res: any) => {
+          this.pages=1;
+          if (res.reservs.length > 0) {
+            Swal.showLoading();
+            var a = this.stringDateTime.StringToDate(res.reservs);
+            this.api.actualizarReservasPendientes(res.reservs, this.restaurant_value).subscribe(() => {
+              this.api.getReservasRangoMain(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => {
+               this.Toast.fire({
+                  icon: 'success',
+                  title: 'Actualizado'
+                })
+                this.reservas = res;  });
+            });
+          } else {
+            this.api.getReservasRangoMain(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
+            this.Toast.fire({
+              icon: 'success',
+              title: 'Actualizado'
+            })
+          }
+        }, error => {
+          return Swal.fire({
+            icon:'error',
+            title:'Hubo un error en la conexión'
+          })
+        })
+      }
+    })
 
+  }
   AnularEstado(id: string, campo: string, nombre: string, fecha: Date) {
     Swal.fire({
       icon: 'error',
@@ -211,7 +261,7 @@ export class TableComponent implements OnInit {
           }
         }
         this.enviarUpdateApi(temp);
-        this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); })
+        this.api.getReservasRangoMain(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); })
       }
     })
   }
@@ -290,7 +340,7 @@ export class TableComponent implements OnInit {
   enviarUpdateApi(temp) {
     this.api.updateReservas(temp).subscribe((res: any) => {
       if (Object.entries(res).length > 0) {
-        this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
+        this.api.getReservasRangoMain(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
         return this.Toast.fire({
           icon: 'success',
           title: 'Actualizado'

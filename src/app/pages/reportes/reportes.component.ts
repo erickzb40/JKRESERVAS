@@ -22,16 +22,13 @@ export class ReportesComponent implements OnInit {
     var fecha = this.addHoursToDate(fecha,-5);
     this.fecha1 = fecha.toJSON().slice(0, 10);
     this.fecha2 = fecha.toJSON().slice(0, 10);
-    this.api.obtenerPermisoToken().subscribe((res:any)=>{
-      this.token=res[0].token;
-      this.api.getRestaurantes(this.token).subscribe((res: any) => {
+      this.api.getRestaurantes(localStorage.getItem('token_restaurant')).subscribe((res: any) => {
         this.restaurantes = res.restaurants;
         if(res.restaurants[0].restaurant){
           this.restaurant_value= res.restaurants[0].restaurant;
           this.api.getReservasRango(this.fecha1, this.fecha2,this.restaurant_value).subscribe(res => { this.reservas = res; Swal.close(); });
         }
       });
-    })
   }
 
   ngOnInit(): void {

@@ -14,11 +14,11 @@
             </select>
           </div>
           <div style="width: 230px;">
-            <label for="">Filtrar por nombre:</label>
-            <input type="text" [(ngModel)]="FiltroReservaNombre"name="filtroName" class="form-control" >
+            <label for="">Filtrar por nombre o mesa:</label>
+            <input type="text" [(ngModel)]="FiltroReservaNombre" name="filtro" class="form-control" >
           </div>
           <div style="width: 230px;">
-            <label for="">Desde:</label>
+            <label for="">Fecha:</label>
             <div class="input-group date" data-provide="datepicker">
               <input type="date" class="form-control" [(ngModel)]="fecha1">
               <div class="input-group-addon">
@@ -26,7 +26,7 @@
               </div>
             </div>
           </div>
-          <div style="width: 230px;">
+<!--           <div style="width: 230px;">
             <label for="">Hasta:</label>
             <div class="input-group date" data-provide="datepicker">
               <input type="date" class="form-control" [(ngModel)]="fecha2">
@@ -34,7 +34,7 @@
                 <span class="glyphicon glyphicon-th"></span>
               </div>
             </div>
-          </div>
+          </div> -->
           <div style="width: 80px;">
             <label for="">Buscar:</label>
             <mat-icon style="cursor: pointer; font-size:40px;width: 40px;height: 40px;color: green;"
@@ -43,7 +43,7 @@
           <div style="width: 80px;">
             <label for="">Sincronizar:</label>
             <mat-icon style="cursor: pointer; font-size:40px;width: 40px;height: 40px;color: green;"
-              (click)="vincularAutomatico()">cached</mat-icon>
+              (click)="abrirModalXacto()">cached</mat-icon>
           </div>
         </div>
         <table class="table table-responsive">
@@ -56,10 +56,11 @@
               <th scope="col">Pax</th>
               <th scope="col">Documentos Vinculados</th>
               <th scope="col">Vincular</th>
+              <th scope="col">Subir</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of reservas | filtroReserva:FiltroReservaNombre |paginate: {id:'pageVincular', itemsPerPage: 10, currentPage: pgv }">
+            <tr *ngFor="let item of reservas | ordenar: 'date'| filter: FiltroReservaNombre:['mesa','user_name'] |paginate: {id:'pageVincular', itemsPerPage: 10, currentPage: pgv }">
               <th scope="row">{{item.id_reserv}}</th>
               <td style="max-width: 150px;">{{item.user_name}}</td>
               <td>{{item.date|date:'dd-MM-yyyy hh:mm a'}}</td>
@@ -75,6 +76,10 @@
                 <!-- <a *ngFor="let doc of item.doc_vinculados" class="badge badge-primary">{{doc.Serie_doc}}</a> --></td>
               <td scope="row">
                 <mat-icon  style="cursor: pointer;" (click)="openModalRegistro(modalVincular,item.id_reserv,item.user_name,item.id)">launch</mat-icon>
+              </td>
+              <td scope="row">
+                <mat-icon>cloud_upload</mat-icon>
+                <mat-icon style="cursor: pointer;color: rgb(63, 63, 255);" (click)="setTicketCover(item.doc_vinculados)">cloud_upload</mat-icon>
               </td>
             </tr>
           </tbody>
@@ -101,7 +106,7 @@
         </div>
       </div>
       <div style="width: 230px;">
-        <label for="">N° Documento</label>
+        <label for="">N° Documento o mesa</label>
         <input type="text" [(ngModel)]="FiltroDocumento"name="filtro" class="form-control" >
       </div>
       <div style="width: 80px;">
@@ -115,15 +120,17 @@
         <tr>
           <th scope="col">Documento</th>
           <th scope="col">Fecha</th>
+          <th scope="col">Mesa</th>
           <th scope="col">Monto</th>
           <th scope="col">Estado</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let item of documentosCabecera|filtroDoc: FiltroDocumento| paginate: {id:'pageCabecera', itemsPerPage: 10, currentPage: pc }"
-        (click)="vincularDocumento(item.serieNumero,item.tipoDocumento,item.fechaEmision,item.numeroDocumentoAdquirente,item.razonSocialAdquirente,item.totalVenta)" style="cursor: pointer">
+        <tr *ngFor="let item of documentosCabecera|ordenar:'fechaEmision'|filter: FiltroDocumento:['mesa','serieNumero']| paginate: {id:'pageCabecera', itemsPerPage: 10, currentPage: pc }"
+        (click)="vincularDocumento(item.serieNumero,item.tipoDocumento,item.fechaEmision,item.numeroDocumentoAdquirente,item.razonSocialAdquirente,item.totalVenta,item.detalle)" style="cursor: pointer">
           <th scope="row">{{item.serieNumero}}</th>
           <td scope="row">{{item.fechaEmision|date:'dd-MM-yyyy hh:mm a'}}</td>
+          <td scope="row">{{item.mesa}}</td>
           <td scope="row">{{item.totalVenta}}</td>
           <td scope="row">{{item.estado}}</td>
         </tr>
@@ -131,4 +138,47 @@
     </table>
     <pagination-controls id="pageCabecera" (pageChange)="pc = $event" class="text-center mt-2"></pagination-controls>
 	</div>
+</ng-template>
+
+
+<ng-template #modalDoc let-modal>
+	<div class="modal-header" style="height: 50px;">
+		<h3 class="mt-2"><b>Los siguientes registros se vincularan</b></h3>
+		<button id="cerrarModal" type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+	</div>
+	<div class="modal-body">
+    <div class="row">
+      <div style="width: 230px;">
+        <label for="">Filtrar</label>
+        <input type="text" [(ngModel)]="FiltroDocumentoVinculado"name="filtro" class="form-control" >
+      </div>
+    </div>
+    <table class="table table-responsive table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Reserva</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Documento</th>
+          <th scope="col">Mesa</th>
+          <th scope="col">Fecha</th>
+          <th scope="col">Monto</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of DocVinculados|ordenar:'fechaEmision'|filter: FiltroDocumentoVinculado:['mesa','serieNumero','razonSocialAdquirente']| paginate: {id:'pageDoc', itemsPerPage: 10, currentPage: pdoc }">
+          <th scope="row">{{item.id_reserv}}</th>
+          <td style="max-width: 150px;">{{item.razonSocialAdquirente}}</td>
+          <th scope="row">{{item.serieNumero}}</th>
+          <th scope="row">{{item.mesa}}</th>
+          <td scope="row">{{item.fechaEmision|date:'dd-MM-yyyy hh:mm a'}}</td>
+          <td scope="row">{{item.totalVenta}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <pagination-controls style="height: 30px;" id="pageDoc" (pageChange)="pdoc = $event" class="text-center mt-2"></pagination-controls>
+	</div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" (click)="modal.dismiss('Cross click')">Salir</button>
+    <button type="button" class="btn btn-success" (click)="VincularDocAuto()">Vincular</button>
+  </div>
 </ng-template>

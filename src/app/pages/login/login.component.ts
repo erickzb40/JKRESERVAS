@@ -44,8 +44,12 @@ export class LoginComponent implements OnInit {
     });
 
   }
+
+/*   this.api.obtenerPermisoToken().subscribe((res: any) => {
+    this.token = res[0].token;} */
   validarUsuario(res:any){
     if (Object.entries(res).length > 0) {
+      res=res[0];
       if (this.recordarme) {
         localStorage.setItem('user', this.usuario.nombreUsuario);
         localStorage.setItem('emp', this.usuario.empresa.toLowerCase());
@@ -54,6 +58,7 @@ export class LoginComponent implements OnInit {
         localStorage.removeItem('emp');
       }
       Swal.close();
+      localStorage.setItem('token_restaurant',res.token_restaurant)
       localStorage.setItem('token',res.token);
       localStorage.setItem('emp',this.usuario.empresa.toLowerCase());
       console.log('llego')

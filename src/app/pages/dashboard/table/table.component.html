@@ -52,6 +52,11 @@
         <mat-icon style="cursor: pointer; font-size:40px;width: 40px;height: 40px;color: green;"
           (click)="openModalRegistro(content)">add_box</mat-icon>
       </div>
+      <div style="width: 80px;">
+        <label for="">Sincronizar:</label>
+        <mat-icon style="cursor: pointer; font-size:40px;width: 40px;height: 40px;color: green;"
+          (click)="actualizarReservasPendientes()">cached</mat-icon>
+      </div>
     </div>
   </div>
   <div class="table-responsive m-3">
@@ -74,7 +79,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let item of reservas | filtroReservaMain:FiltroReservaNombre| ordenar: 'date'| filtrar: filtroReservas| paginate: {id:'page1', itemsPerPage: 10, currentPage: pages }">
-          <td scope="row">{{item.id}}</td>
+          <td scope="row">{{item.id_reserv}}</td>
           <td scope="row">
             <div style="width: 90px;">{{item.date|date:'dd-MM-yyyy'}}</div>
           </td>

@@ -11,15 +11,12 @@ import Swal from 'sweetalert2';
 export class RegistroComponent {
 
   constructor(public api: ReservasService,public tb:TableComponent) {
-    this.api.obtenerPermisoToken().subscribe((res:any)=>{
-      this.token=res[0].token;
-      this.api.getRestaurantes(this.token).subscribe((res: any) => {
+      this.api.getRestaurantes(localStorage.getItem('token_restaurant')).subscribe((res: any) => {
         this.restaurantes = res.restaurants;
         if(res.restaurants[0].restaurant){
           this.restaurant_value= res.restaurants[0].restaurant;
         }
       });
-    })
     var time = new Date();
     var time2 = this.addHoursToDate(time, -5);
     this.fecha = time2.toISOString().substring(0, 16);
