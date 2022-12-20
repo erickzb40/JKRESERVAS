@@ -5,8 +5,8 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class ReservasService {
-  //localhost = 'https://jk-smart.com:84/';
-  localhost = 'https://localhost:7023/';
+  localhost = 'https://jk-smart.com:84/';
+  //localhost = 'https://localhost:7023/';
   constructor(public http: HttpClient) { }
 
   buscarReservas(obj: any, token: any) {
@@ -17,7 +17,9 @@ export class ReservasService {
     return this.http.get('https://www.covermanager.com/api/restaurant/list/' + token);
   }
   SetTicketCover(form:any){
-    return this.http.post('https://www.covermanager.com/api/reserv/set_ticket',form);
+    return this.http.post('https://www.covermanager.com/api/reserv/set_ticket',form,{
+      headers: { 'apikey': localStorage.getItem('token_restaurant') }
+    });
   }
   insertarReservasPendientes(form: any, restaurant: string) {
     var tokenlocalstorage = localStorage.getItem('token');

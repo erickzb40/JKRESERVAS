@@ -61,7 +61,6 @@ export class LoginComponent implements OnInit {
       localStorage.setItem('token_restaurant',res.token_restaurant)
       localStorage.setItem('token',res.token);
       localStorage.setItem('emp',this.usuario.empresa.toLowerCase());
-      console.log('llego')
       return this.router.navigateByUrl('dashboard');
     } else {
       Swal.fire({

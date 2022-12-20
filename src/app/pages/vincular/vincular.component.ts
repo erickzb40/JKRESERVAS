@@ -17,7 +17,7 @@ export class VincularComponent {
   fecha2: string;
   FiltroDocumento = '';
   FiltroReservaNombre = '';
-  FiltroDocumentoVinculado='';
+  FiltroDocumentoVinculado = '';
   reservas: any = [];
   restaurant_value: string = localStorage.getItem('token_restaurant');
   token: string = '';
@@ -43,15 +43,15 @@ export class VincularComponent {
   })
   constructor(public api: ReservasService, private modalService: NgbModal) {
     Swal.showLoading();
-      this.api.getRestaurantes(localStorage.getItem('token_restaurant')).subscribe((res: any) => {
-        this.restaurantes = res.restaurants;
-        if (res.restaurants[0].restaurant) {
-          this.restaurant_value = res.restaurants[0].restaurant;
-          this.obtenerReservasRango('cerrar');
-        } else {
-          Swal.close();
-        }
-      });
+    this.api.getRestaurantes(localStorage.getItem('token_restaurant')).subscribe((res: any) => {
+      this.restaurantes = res.restaurants;
+      if (res.restaurants[0].restaurant) {
+        this.restaurant_value = res.restaurants[0].restaurant;
+        this.obtenerReservasRango('cerrar');
+      } else {
+        Swal.close();
+      }
+    });
     var fecha = new Date();
     var fecha = this.addHoursToDate(fecha, -5);
     this.fecha1 = fecha.toJSON().slice(0, 10);
@@ -68,15 +68,6 @@ export class VincularComponent {
       }
     );
   }
-  vincularAutomatico(modalDoc) {
-    this.DocVinculados = [];
-    this.buscarDocumentosXacto();
-/*     this.modalService.open(modalDoc, { size: 'lg' }); */
-
-    /*    console.log(this.addHoursToDate(new Date(new Date('2022-12-06 15:35:36').toISOString()), -5).toISOString()) */
-
-    /*     console.log('2022-12-06 15:35:36') */
-  }
   VincularDocAuto() {
     Swal.showLoading();
     this.api.vincularReservas(this.DocVinculados).subscribe((res) => {
@@ -92,29 +83,64 @@ export class VincularComponent {
       else { Swal.fire({ icon: 'warning', text: 'Hubo un error al crear el registro' }); }
     });
   }
-  setTicketCover(form){
-    console.log(form);
-   /*  var form={
-      "id_reserv": "9F4G4t",
-      "items": [
-          {
-              "productName": "Producto A",
-              "amount": "1",
-              "unitPrice": "9.99",
-              "totalPrice": "9.99"
+  setTicketCover() {
+    Swal.showLoading();
+    var formatoTicket = [];
+    var total = 0;
+    var cont = 0;
+    //recorro cada reserva
+    this.reservas.forEach(element => {
+      var item = [];
+      var formaPago = [];
+      var fechaDoc='';
+      if (element.doc_vinculados&&element.id_reserv.length!=10&&isNaN(element.id_reserv)) {
+        //valido si existe documentos vinculados
+        if (element.doc_vinculados.length > 0) {
+          //recorro cada documento vinculado
+          element.doc_vinculados.forEach(vinculado => {
+            if(fechaDoc==''){
+              fechaDoc=vinculado.fechaEmision;
+             }
+            if (vinculado.documentoDetalles) {
+              if (vinculado.documentoDetalles.length > 0) {
+                vinculado.documentoDetalles.forEach(detalle => {
+                  item.push(detalle);
+                });
+                total = total + vinculado.totalVenta;
+              }
+            }
+            formaPago.push(vinculado.formaPago);
+          });
+          const obj = {
+            "id_reserv": element.id_reserv,
+            "Items": item,
+            "payments": formaPago,
+            "printDate": fechaDoc.replace("T"," "),
+            "status": "PAID",
+            "total": total
           }
-      ],
-      "payments": [
-          {
-              "type": "Efectivo",
-              "amount": "9.99"
-          }
-      ],
-      "printDate": "2019-10-10 22:30:45",
-      "status": "PAID",
-      "total": "9.99"
-    }; */
-    this.api.SetTicketCover(form);
+          formatoTicket.push(obj)
+        }
+      }
+      cont++;
+    }
+    );
+      formatoTicket.forEach(param => {
+        if (this.reservas.length  == cont) {
+          this.api.SetTicketCover(param).subscribe((res: any) => {
+            if (res.resp) {
+              Swal.fire({ icon: 'success', text: 'Registros subidos con exito!' });
+            }
+          }, err => {
+            { Swal.fire({ icon: 'warning', text: 'Hubo un error en la conexión' }); }
+          });
+        }else{
+          this.api.SetTicketCover(param).subscribe((res: any) => {
+          });
+        }
+
+      });
+      if(formatoTicket.length==0)return Swal.fire({icon:'warning',title:'No se encontró ningún documento vinculado a la reserva'})
   }
   //convierte en fecha actual
   convertTime(fecha: string, horas: number) {
@@ -143,13 +169,13 @@ export class VincularComponent {
     this.idReservaActual = idRegistro;
     this.reservaActual = "RESERVA:" + id + " - " + user;
     this.buscarDocumentosXacto();
-    this.modalService.open(content,{ size: 'lg' })
+    this.modalService.open(content, { size: 'lg' })
   }
-  abrirModalXacto(){
+  abrirModalXacto() {
     this.buscarDocumentosXacto('modal');
   }
-  buscarDocumentosXacto(modal?:string) {
-    this.DocVinculados=[];
+  buscarDocumentosXacto(modal?: string) {
+    this.DocVinculados = [];
     Swal.showLoading();
     this.api.xacto(this.fecha1).subscribe((res: any) => {
       this.documentosCabecera = res.response.documento;
@@ -161,40 +187,30 @@ export class VincularComponent {
           const vmesa = doc.mesa.split(",");
           const vmesa2 = this.reservas[index2].mesa.split(",");
           if (vmesa[0] != 'SIN' && vmesa2[0] != 'SIN' && vmesa[0] != 'TAB' && vmesa[0] != 'TAB' && vmesa2[0].includes(vmesa)) {
-            var fechaFin = new Date(doc.fechaEmision).getTime();
-            var fechaInicio    = new Date(this.reservas[index2].date).getTime();
-            if(doc.serieNumero=='B004-00045356'){
-              if(!this.reservas[index2].doc_vinculados.includes(doc.serieNumero) && fechaFin-fechaInicio<=21600000 && fechaFin>fechaInicio){}else{
-                console.log(!this.reservas[index2].doc_vinculados.includes(doc.serieNumero));
-                console.log(fechaFin-fechaInicio<=21600000);
-                console.log(fechaFin>fechaInicio)
-              }
-            }
-
-            if(!this.reservas[index2].doc_vinculados.includes(doc.serieNumero) && fechaFin-fechaInicio<=21600000 && fechaFin>fechaInicio)
-               {
-
+              var fechaFin = new Date(doc.fechaEmision).getTime();
+              var fechaInicio = new Date(this.reservas[index2].date_sit).getTime();
+              if (!this.reservas[index2].doc_vinculados.includes(doc.serieNumero) && fechaFin - fechaInicio <= 21600000 && fechaFin > fechaInicio) {
                 const objeto = this.documentosCabecera[index];
                 objeto.id_reserv = this.reservas[index2].id_reserv;
                 objeto.reservasid = this.reservas[index2].id;
                 objeto.serie_doc = doc.serieNumero;
                 objeto.tipo_doc = doc.tipoDocumento;
-                objeto.fechaEmision = doc.fechaEmision.replace(" ","T");
-                objeto.numeroDocumentoAdquiriente  = doc.numeroDocumentoAdquirente;
+                objeto.fechaEmision = doc.fechaEmision.replace(" ", "T");
+                objeto.numeroDocumentoAdquiriente = doc.numeroDocumentoAdquirente;
                 objeto.razonSocialAdquiriente = doc.razonSocialAdquirente;
                 objeto.totalVenta = doc.totalVenta;
                 objeto.user_name = doc.user_name;
-                objeto.documentoDetalles=doc.detalle;
+                objeto.documentoDetalles = doc.detalle;
                 this.DocVinculados.push(objeto);
               }
-              break;
+            break;
           }
         }
       }
-      console.log( this.DocVinculados)
-      if(modal=='modal'){
-        if(this.DocVinculados.length==0){return Swal.fire({icon:'info',title:'No se econtró niguna coincidencia!'})}
-        this.modalService.open(this.templateRef,{ size: 'lg' });
+      console.log(this.DocVinculados)
+      if (modal == 'modal') {
+        if (this.DocVinculados.length == 0) { return Swal.fire({ icon: 'info', title: 'No se encontró niguna coincidencia!' }) }
+        this.modalService.open(this.templateRef, { size: 'lg' });
       }
       Swal.close();
     }, err => {
@@ -202,7 +218,7 @@ export class VincularComponent {
       else { Swal.fire({ icon: 'warning', text: 'Hubo un error al crear el registro' }); }
     })
   }
-  vincularDocumento(serie_doc, tipo_doc, fechaEmision, numeroDocumentoAdquirente, razonSocialAdquiriente, totalVenta,detalle) {
+  vincularDocumento(serie_doc, tipo_doc, fechaEmision, numeroDocumentoAdquirente, razonSocialAdquiriente, totalVenta, detalle,formaPago) {
     Swal.fire({
       title: 'Esta seguro de vincular este documento?',
       showDenyButton: true,
@@ -224,7 +240,8 @@ export class VincularComponent {
           "numeroDocumentoAdquirente": numeroDocumentoAdquirente,
           "razonSocialAdquiriente": razonSocialAdquiriente,
           "totalVenta": totalVenta,
-          "documentoDetalles": detalle
+          "documentoDetalles": detalle,
+          "formaPago": formaPago
         }
         this.api.vincularReserva(objVinculo).subscribe((res: any) => {
           this.obtenerReservasRango();

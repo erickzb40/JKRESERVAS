@@ -45,6 +45,11 @@
             <mat-icon style="cursor: pointer; font-size:40px;width: 40px;height: 40px;color: green;"
               (click)="abrirModalXacto()">cached</mat-icon>
           </div>
+          <div style="width: 80px;">
+            <label for="">Subir:</label>
+            <mat-icon style="cursor: pointer; font-size:40px;width: 40px;height: 40px;color: rgb(63, 63, 255);"
+              (click)="setTicketCover()">cloud_upload</mat-icon>
+          </div>
         </div>
         <table class="table table-responsive">
           <thead>
@@ -56,7 +61,6 @@
               <th scope="col">Pax</th>
               <th scope="col">Documentos Vinculados</th>
               <th scope="col">Vincular</th>
-              <th scope="col">Subir</th>
             </tr>
           </thead>
           <tbody>
@@ -76,10 +80,6 @@
                 <!-- <a *ngFor="let doc of item.doc_vinculados" class="badge badge-primary">{{doc.Serie_doc}}</a> --></td>
               <td scope="row">
                 <mat-icon  style="cursor: pointer;" (click)="openModalRegistro(modalVincular,item.id_reserv,item.user_name,item.id)">launch</mat-icon>
-              </td>
-              <td scope="row">
-                <mat-icon>cloud_upload</mat-icon>
-                <mat-icon style="cursor: pointer;color: rgb(63, 63, 255);" (click)="setTicketCover(item.doc_vinculados)">cloud_upload</mat-icon>
               </td>
             </tr>
           </tbody>
@@ -127,7 +127,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let item of documentosCabecera|ordenar:'fechaEmision'|filter: FiltroDocumento:['mesa','serieNumero']| paginate: {id:'pageCabecera', itemsPerPage: 10, currentPage: pc }"
-        (click)="vincularDocumento(item.serieNumero,item.tipoDocumento,item.fechaEmision,item.numeroDocumentoAdquirente,item.razonSocialAdquirente,item.totalVenta,item.detalle)" style="cursor: pointer">
+        (click)="vincularDocumento(item.serieNumero,item.tipoDocumento,item.fechaEmision,item.numeroDocumentoAdquirente,item.razonSocialAdquirente,item.totalVenta,item.detalle,item.formaPago)" style="cursor: pointer">
           <th scope="row">{{item.serieNumero}}</th>
           <td scope="row">{{item.fechaEmision|date:'dd-MM-yyyy hh:mm a'}}</td>
           <td scope="row">{{item.mesa}}</td>
